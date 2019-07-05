@@ -134,6 +134,7 @@ plugins: [
     "module:styled-components-auto-scoping"
 ]
 ```
+**Make sure that ```styled-components-auto-scoping```** plugin comes before ```styled-components``` babel plugin
 
 There are 2 configuration options you can pass to transformer:
 ```js

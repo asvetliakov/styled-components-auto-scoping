@@ -131,14 +131,14 @@ Add to your babel config
 
 ```js
 plugins: [
-    "styled-components-auto-scoping"
+    "module:styled-components-auto-scoping"
 ]
 ```
 
 There are 2 configuration options you can pass to transformer:
 ```js
 plugins: [
-    ["styled-components-auto-scoping", {
+    ["module:styled-components-auto-scoping", {
         // List of identifiers to process
         styledIdentifiers: ["styled"],
         // add attribute prefix to the generated jsx attributes, empty string leaves attributes untact

@@ -259,3 +259,21 @@ function Test1() {
     `;
     expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin] })!.code).toMatchSnapshot();
 });
+
+it("Works with inner template expressions", () => {
+    const src = `
+function Test1(props) {
+    const A1 = styled.div\`
+        \${props.a && css\`
+            \${props.b};
+            \${props.c && css\`
+                opacity: 0;
+            \`};
+        \`};
+    \`;
+
+    return <A1 />;
+}
+    `;
+    expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin], presets: ["@babel/react"] })!.code).toMatchSnapshot();
+});

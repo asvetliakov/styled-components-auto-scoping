@@ -145,6 +145,23 @@ function processExpression(
     } else if (t.isUnaryExpression(exp)) {
         exp.argument = processExpression(exp.argument, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
         return exp;
+    } else if (t.isTaggedTemplateExpression(exp)) {
+        return processInnerTaggedTemplateExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
+    }
+    return exp;
+}
+
+function processInnerTaggedTemplateExpression(
+    exp: b.types.TaggedTemplateExpression,
+    scope: b.NodePath["scope"],
+    accessIdentifier: string,
+    excludeIdentifier: string = "",
+    state: ProcessingState,
+    t: typeof b.types,
+): b.types.Expression | undefined {
+    for (let i = 0; i < exp.quasi.expressions.length; i++) {
+        const e = exp.quasi.expressions[i];
+        exp.quasi.expressions[i] = processExpression(e, scope, accessIdentifier, excludeIdentifier, state, t);
     }
     return exp;
 }

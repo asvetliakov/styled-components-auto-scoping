@@ -272,6 +272,25 @@ function Test1(props) {
 }"
 `;
 
+exports[`Works with inner template expressions 1`] = `
+"const A1 = styled.div\`
+        \${p => p.a && css\`
+            \${p.b};
+            \${p.c && css\`
+                opacity: 0;
+            \`};
+        \`};
+    \`;
+
+function Test1(props) {
+  return React.createElement(A1, {
+    a: props.a,
+    b: props.b,
+    c: props.c
+  });
+}"
+`;
+
 exports[`Works with styled.attrs 1`] = `
 "const A1 = styled.div.attrs({
   className: \\"test\\"

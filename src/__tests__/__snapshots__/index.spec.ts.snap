@@ -1,0 +1,243 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Adds attribute name prefix when specified 1`] = `
+"const A = styled.div\`
+        color: \${p => p.ui_localProp};
+        color: \${p => p.ui_b};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp
+  } = props;
+  return React.createElement(A, {
+    prop: \\"test\\",
+    ui_localProp: localProp,
+    ui_b: props.b
+  });
+}"
+`;
+
+exports[`Does not transform top level styled components 1`] = `
+"const A = styled.div\`\`;
+const B = styled.div\`
+    \${props => props.a};
+\`;
+const C = styled(A)\`\`;
+const D = styled(Comp)\`
+    \${someProp};
+\`;"
+`;
+
+exports[`Moves styled component to outer scope 1`] = `
+"const A1 = styled.div\`
+        color: #fff;
+    \`;
+const A2 = styled(A1)\`
+        color: #000;
+    \`;
+const A3 = styled(\\"div\\")\`
+        color: #fff;
+    \`;
+
+function Test1() {}
+
+const A4 = styled.div\`
+        color: #fff;
+    \`;
+const A5 = styled(A4)\`
+        color: #000;
+    \`;
+const A6 = styled(\\"div\\")\`
+        color: #fff;
+    \`;
+
+const Test2 = () => {};
+
+const A7 = styled.div\`\`;
+const A8 = styled(Test2)\`\`;
+
+class Test3 extends Component {
+  render() {}
+
+}"
+`;
+
+exports[`Process arrow function expressions in styled templates 1`] = `
+"import { theme } from \\"theme\\";
+const someObj = {
+  a: true
+};
+const A = styled.div\`
+        color: \${props => props.a && props.localProp};
+        color: \${props => props.a && props.localProp ? props.anotherProp : \\"Test\\"};
+        color: \${differentName => differentName.a && differentName.xyz};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp,
+    anotherProp,
+    xyz
+  } = props;
+  return React.createElement(A, {
+    a: props.a,
+    localProp: localProp,
+    anotherProp: anotherProp,
+    xyz: xyz
+  });
+}"
+`;
+
+exports[`Process local identifiers in styled templates 1`] = `
+"import { themeProp } from \\"theme\\";
+const someVar = 5;
+const A = styled.div\`
+        color: green;
+        color: \${p => p.props};
+        color: \${p => p.localProp};
+        color: \${someVar};
+        color: \${themeProp};
+        color: \${nonExisted};
+        background: \${p => p.localProp};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp
+  } = props;
+  return React.createElement(\\"div\\", null, React.createElement(A, {
+    prop: \\"test\\",
+    props: props,
+    localProp: localProp
+  }), React.createElement(A, {
+    props: props,
+    localProp: localProp
+  }, \\"test\\"));
+}
+
+const B = styled.div\`
+            color: green;
+            color: \${p => p.clProp};
+            color: \${someVar};
+            color: \${themeProp};
+            color: \${nonExisted};
+            background: \${p => p.clProp};
+        \`;
+
+class Test2 extends Component {
+  render() {
+    const {
+      clProp
+    } = this.props;
+    return React.createElement(\\"div\\", null, React.createElement(B, {
+      clProp: clProp
+    }), React.createElement(B, {
+      clProp: clProp
+    }, \\"test\\"));
+  }
+
+}"
+`;
+
+exports[`Process local member access in styled templates 1`] = `
+"import { theme } from \\"theme\\";
+const someObj = {
+  a: true
+};
+const A = styled.div\`
+        color: \${p => p.a};
+        color: \${p => p.c};
+        color: \${p => p.localProp};
+        color: \${p => p.e};
+        color: \${theme.a};
+        color: \${someObj.a};
+        background: \${p => p.a};
+        background: \${p => p.e};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp
+  } = props;
+  return React.createElement(\\"div\\", null, React.createElement(A, {
+    prop: \\"test\\",
+    a: props.a,
+    c: props.b.c,
+    localProp: localProp,
+    e: localProp.e
+  }), React.createElement(A, {
+    a: props.a,
+    c: props.b.c,
+    localProp: localProp,
+    e: localProp.e
+  }, \\"test\\"));
+}
+
+const B = styled.div\`
+            color: \${p => p.a};
+            color: \${p => p.b};
+            color: \${p => p.props};
+            color: \${p => p.c};
+            color: \${theme.a};
+            color: \${someObj.a};
+            background: \${p => p.a};
+            background: \${p => p.d};
+            background: \${p => p.c};
+            background: \${p => p.k};
+        \`;
+
+class Test2 extends Component {
+  render() {
+    const {
+      clProp
+    } = this.props;
+    return React.createElement(\\"div\\", null, React.createElement(B, {
+      a: clProp.a,
+      b: clProp.a.b,
+      props: this.props,
+      c: this.props.c,
+      d: clProp.d,
+      k: this.props.k
+    }), React.createElement(B, {
+      a: clProp.a,
+      b: clProp.a.b,
+      props: this.props,
+      c: this.props.c,
+      d: clProp.d,
+      k: this.props.k
+    }, \\"test\\"));
+  }
+
+}"
+`;
+
+exports[`Process logical expressions in styled templates 1`] = `
+"import { theme } from \\"theme\\";
+const A = styled.div\`
+        color: \${p => p.a && \\"green\\"};
+        color: \${p => p.b && p.a1};
+        color: \${p => p.c ? p.x : p.y};
+        color: \${p => p.c && p.k ? p.e : p.t ? p.m : \\"test\\"};
+        color: \${p => p.a && theme.a};
+        color: \${p => p.a ? theme.a : theme.b};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp
+  } = props;
+  return React.createElement(A, {
+    a: props.a,
+    b: localProp.b,
+    a1: props.a1,
+    c: localProp.c,
+    x: props.x,
+    y: props.y,
+    k: localProp.k,
+    e: props.e,
+    t: props.t.t,
+    m: props.m.m
+  });
+}"
+`;

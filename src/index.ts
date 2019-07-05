@@ -13,12 +13,34 @@ const defaultOptions: Options = {
     addAttributePrefix: "",
 };
 
-function isStyled(t: typeof b.types, exp: b.types.TaggedTemplateExpression, styledNames: string[]): boolean {
-    if (t.isMemberExpression(exp.tag)) {
-        return t.isIdentifier(exp.tag.object) && styledNames.includes(exp.tag.object.name);
+function getMostLeftMemberIdentifier(exp: b.types.MemberExpression, t: typeof b.types): string | undefined {
+    if (t.isMemberExpression(exp.object)) {
+        return getMostLeftMemberIdentifier(exp.object, t);
     }
-    if (t.isCallExpression(exp.tag)) {
-        return t.isIdentifier(exp.tag.callee) && styledNames.includes(exp.tag.callee.name);
+    if (t.isIdentifier(exp.object)) {
+        return exp.object.name;
+    }
+    if (t.isThisExpression(exp.object)) {
+        return "this";
+    }
+    return undefined;
+}
+
+function isStyled(t: typeof b.types, exp: b.types.Expression, styledNames: string[]): boolean {
+    if (t.isIdentifier(exp)) {
+        return styledNames.includes(exp.name);
+    }
+    if (t.isMemberExpression(exp)) {
+        if (t.isCallExpression(exp.object)) {
+            return isStyled(t, exp.object, styledNames);
+        }
+        const mostLeftIdentifier = getMostLeftMemberIdentifier(exp, t);
+        if (mostLeftIdentifier && styledNames.includes(mostLeftIdentifier)) {
+            return true;
+        }
+    }
+    if (t.isCallExpression(exp)) {
+        return isStyled(t, exp.callee, styledNames);
     }
     return false;
 }
@@ -51,19 +73,6 @@ function getStyledIdentifier(exp: b.NodePath<b.types.TaggedTemplateExpression>, 
         return exp.parentPath.node.id.name;
     }
     return;
-}
-
-function getMostLeftMemberIdentifier(exp: b.types.MemberExpression, t: typeof b.types): string | undefined {
-    if (t.isMemberExpression(exp.object)) {
-        return getMostLeftMemberIdentifier(exp.object, t);
-    }
-    if (t.isIdentifier(exp.object)) {
-        return exp.object.name;
-    }
-    if (t.isThisExpression(exp.object)) {
-        return "this";
-    }
-    return undefined;
 }
 
 interface ProcessingState {
@@ -129,16 +138,19 @@ function processExpression(
         return processTemplateIdentifierExpression(exp, scope, accessIdentifier, state, t) || exp;
     } else if (t.isMemberExpression(exp)) {
         return processTemplateMemberExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
-    } else if (t.isLogicalExpression(exp)) {
+    } else if (t.isLogicalExpression(exp) || t.isBinaryExpression(exp)) {
         return processTemplateLogicalExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
     } else if (t.isConditionalExpression(exp)) {
         return processTemplateConditionalExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
+    } else if (t.isUnaryExpression(exp)) {
+        exp.argument = processExpression(exp.argument, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
+        return exp;
     }
     return exp;
 }
 
 function processTemplateLogicalExpression(
-    exp: b.types.LogicalExpression,
+    exp: b.types.LogicalExpression | b.types.BinaryExpression,
     scope: b.NodePath["scope"],
     accessIdentifier: string,
     excludeIdentifier: string = "",
@@ -200,7 +212,7 @@ export default function plugin({ types: t }: typeof b, options: Options = {}): b
     return {
         visitor: {
             TaggedTemplateExpression(path) {
-                if (!isStyled(t, path.node, finalOptions.styledIdentifiers!)) {
+                if (!isStyled(t, path.node.tag, finalOptions.styledIdentifiers!)) {
                     return;
                 }
                 if (!shouldProcess(t, path)) {

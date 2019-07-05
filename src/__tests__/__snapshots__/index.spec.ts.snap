@@ -241,3 +241,48 @@ function Test1(props) {
   });
 }"
 `;
+
+exports[`Works for negative logical expressions 1`] = `
+"import { theme } from \\"theme\\";
+const A = styled.div\`
+        color: \${p => !p.a && \\"green\\"};
+        color: \${p => !p.b && p.a1};
+        color: \${p => !p.c ? p.x : p.y};
+        color: \${p => !p.c && p.k ? p.e : p.t ? p.m : \\"test\\"};
+        color: \${p => !p.a && theme.a};
+        color: \${p => !p.a ? theme.a : theme.b};
+    \`;
+
+function Test1(props) {
+  const {
+    localProp
+  } = props;
+  return React.createElement(A, {
+    a: props.a,
+    b: localProp.b,
+    a1: props.a1,
+    c: localProp.c,
+    x: props.x,
+    y: props.y,
+    k: localProp.k,
+    e: props.e,
+    t: props.t.t,
+    m: props.m.m
+  });
+}"
+`;
+
+exports[`Works with styled.attrs 1`] = `
+"const A1 = styled.div.attrs({
+  className: \\"test\\"
+})\`
+        color: #fff;
+    \`;
+const A2 = styled(A1).attrs({
+  className: \\"test2\\"
+})\`
+        color: #fff;
+    \`;
+
+function Test1() {}"
+`;

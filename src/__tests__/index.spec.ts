@@ -222,3 +222,40 @@ function Test1(props) {
     `;
     expect(transform(src, { babelrc: false, configFile: false, plugins: [[plugin, { addAttributePrefix: "ui_" }]], presets: ["@babel/react"] })!.code).toMatchSnapshot();
 });
+
+it("Works for negative logical expressions", () => {
+    const src = `
+import { theme } from "theme";
+
+function Test1(props) {
+    const { localProp } = props;
+    const A = styled.div\`
+        color: \${!props.a && "green"};
+        color: \${!localProp.b && props.a1};
+        color: \${!localProp.c ? props.x : props.y};
+        color: \${!localProp.c && localProp.k ? props.e : props.t.t ? props.m.m : "test"};
+        color: \${!props.a && theme.a};
+        color: \${!props.a ? theme.a : theme.b};
+    \`;
+
+    return (
+        <A />
+    );
+}
+    `;
+    expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin], presets: ["@babel/react"] })!.code).toMatchSnapshot();
+});
+
+it("Works with styled.attrs", () => {
+    const src = `
+function Test1() {
+    const A1 = styled.div.attrs({ className: "test" })\`
+        color: #fff;
+    \`;
+    const A2 = styled(A1).attrs({ className: "test2" })\`
+        color: #fff;
+    \`;
+}
+    `;
+    expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin] })!.code).toMatchSnapshot();
+});

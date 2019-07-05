@@ -126,7 +126,7 @@ function processTemplateMemberExpression(
     return t.memberExpression(t.identifier(accessIdentifier), state.attributePrefix ? t.identifier(state.attributePrefix + exp.property.name) : exp.property);
 }
 
-function processExpression(
+function processInnerExpression(
     exp: b.types.Expression,
     scope: b.NodePath["scope"],
     accessIdentifier: string,
@@ -143,10 +143,12 @@ function processExpression(
     } else if (t.isConditionalExpression(exp)) {
         return processTemplateConditionalExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
     } else if (t.isUnaryExpression(exp)) {
-        exp.argument = processExpression(exp.argument, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
+        exp.argument = processInnerExpression(exp.argument, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
         return exp;
     } else if (t.isTaggedTemplateExpression(exp)) {
         return processInnerTaggedTemplateExpression(exp, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
+    } else if (t.isTSNonNullExpression(exp)) {
+        exp.expression = processInnerExpression(exp.expression, scope, accessIdentifier, excludeIdentifier, state, t) || exp;
     }
     return exp;
 }
@@ -161,7 +163,7 @@ function processInnerTaggedTemplateExpression(
 ): b.types.Expression | undefined {
     for (let i = 0; i < exp.quasi.expressions.length; i++) {
         const e = exp.quasi.expressions[i];
-        exp.quasi.expressions[i] = processExpression(e, scope, accessIdentifier, excludeIdentifier, state, t);
+        exp.quasi.expressions[i] = processInnerExpression(e, scope, accessIdentifier, excludeIdentifier, state, t);
     }
     return exp;
 }
@@ -174,8 +176,8 @@ function processTemplateLogicalExpression(
     state: ProcessingState,
     t: typeof b.types,
 ): b.types.Expression | undefined {
-    exp.left = processExpression(exp.left, scope, accessIdentifier, excludeIdentifier, state, t);
-    exp.right = processExpression(exp.right, scope, accessIdentifier, excludeIdentifier, state, t);
+    exp.left = processInnerExpression(exp.left, scope, accessIdentifier, excludeIdentifier, state, t);
+    exp.right = processInnerExpression(exp.right, scope, accessIdentifier, excludeIdentifier, state, t);
     return exp;
 }
 
@@ -187,9 +189,9 @@ function processTemplateConditionalExpression(
     state: ProcessingState,
     t: typeof b.types,
 ): b.types.Expression | undefined {
-    exp.test = processExpression(exp.test, scope, accessIdentifier, excludeIdentifier, state, t);
-    exp.consequent = processExpression(exp.consequent, scope, accessIdentifier, excludeIdentifier, state, t);
-    exp.alternate = processExpression(exp.alternate, scope, accessIdentifier, excludeIdentifier, state, t);
+    exp.test = processInnerExpression(exp.test, scope, accessIdentifier, excludeIdentifier, state, t);
+    exp.consequent = processInnerExpression(exp.consequent, scope, accessIdentifier, excludeIdentifier, state, t);
+    exp.alternate = processInnerExpression(exp.alternate, scope, accessIdentifier, excludeIdentifier, state, t);
     return exp;
 }
 
@@ -204,7 +206,7 @@ function processTemplateArrowFunctionExpression(
     if (!t.isExpression(exp.body)) {
         return;
     }
-    return processExpression(exp.body, scope, accessIdentifier, excludeIdentifier, state, t);
+    return processInnerExpression(exp.body, scope, accessIdentifier, excludeIdentifier, state, t);
 }
 
 interface JSXVisitorState {
@@ -251,7 +253,11 @@ export default function plugin({ types: t }: typeof b, options: Options = {}): b
                     attributePrefix: finalOptions.addAttributePrefix!,
                 };
                 for (let i = 0; i < path.node.quasi.expressions.length; i++) {
-                    const exp = path.node.quasi.expressions[i];
+                    let exp = path.node.quasi.expressions[i];
+                    // drop TS a! thing
+                    if (t.isTSNonNullExpression(exp)) {
+                        exp = exp.expression;
+                    }
                     let processed: b.types.Expression | undefined;
                     let paramName = "p";
                     if (t.isIdentifier(exp)) {

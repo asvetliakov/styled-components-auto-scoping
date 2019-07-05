@@ -305,3 +305,28 @@ const A2 = styled(A1).attrs({
 
 function Test1() {}"
 `;
+
+exports[`Works with typescript nullable modifier 1`] = `
+"const A1 = styled.div\`
+        \${p => p.a && css\`
+            \${p.b};
+            \${p.c && css\`
+                opacity: 0;
+            \`};
+        \`};
+        color: \${p => p.e > 0 ? \\"green\\" : \\"blue\\"};
+        \${p => p.a && p.y && css\`
+            color: blue;
+        \`};
+    \`;
+
+function Test1(props) {
+  return React.createElement(A1, {
+    a: props.a,
+    b: props.b,
+    c: props.c,
+    e: props.e,
+    y: props.y
+  });
+}"
+`;

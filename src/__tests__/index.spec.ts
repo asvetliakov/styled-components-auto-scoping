@@ -277,3 +277,25 @@ function Test1(props) {
     `;
     expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin], presets: ["@babel/react"] })!.code).toMatchSnapshot();
 });
+
+it("Works with typescript nullable modifier", () => {
+    const src = `
+function Test1(props) {
+    const A1 = styled.div\`
+        \${props.a! && css\`
+            \${props.b!};
+            \${props.c! && css\`
+                opacity: 0;
+            \`};
+        \`};
+        color: \${props.e! > 0 ? "green" : "blue"};
+        \${props.a && props.y! && css\`
+            color: blue;
+        \`};
+    \`;
+
+    return <A1 />;
+}
+    `;
+    expect(transform(src, { babelrc: false, configFile: false, plugins: [plugin], presets: ["@babel/typescript", "@babel/react"], filename: "/test.tsx" })!.code).toMatchSnapshot();
+});

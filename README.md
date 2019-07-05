@@ -1,6 +1,8 @@
 # About
 This is babel plugin that moves automatically locally scoped styled components to outside of the current component scope, e.g.:
 
+## Disclaimer: this is experimental, use at your own risk
+
 **from**:
 ```jsx
 function MyReactComponent(props) {

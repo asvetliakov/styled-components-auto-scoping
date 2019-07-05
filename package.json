@@ -1,6 +1,6 @@
 {
   "name": "styled-components-auto-scoping",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Auto move locally scoped styled-components to outside scope",
   "main": "./build/index.js",
   "license": "MIT",
